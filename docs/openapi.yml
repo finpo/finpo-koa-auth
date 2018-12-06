@@ -1,0 +1,211 @@
+openapi: '3.0'
+
+info:
+  version: 1.0.0
+  title: 會員認證系統
+  description: |
+    會員模組 for KOA2
+    
+    # 密碼加密原則
+
+    密碼傳送時須使用 crypto-js AES 加密
+    加密金鑰請與 server 相同
+    ```js
+    // Encrypt
+    var cipherPassword = CryptoJS.AES.encrypt('password', 'secret').toString();
+    ```
+    https://github.com/brix/crypto-js
+
+servers:
+  - url: http://127.0.0.1:3000/{basePath}
+    description: local dev server
+    variables:
+      basePath:
+        default: /api/f
+
+components:
+  securitySchemes:
+    Bearer:
+      type: Bearer
+      in: header
+      description: |
+        使用 Bearer JWT 認證格式傳送內容包含
+        ```text
+        Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiNWMwMGZhMDQ3MDdjOGU2MTFjZWJhMDhkIiwiYXV0aExvZyI6IjVjMDRmNWFlYjViYzFiMjhkYzdmNjZjMyIsImlhdCI6MTU0MzgyODkxMCwiZXhwIjoxNTQzOTE1MzEwfQ._gnYM8XV2737MawDxF5CQJokzzdsYz6Y1LNyHlQeoAA
+        ```
+        其解開資訊應包含
+        ```json
+        {
+          "user": "5c00fa04707c8e611ceba08d",
+          "authLog": "5c04f5aeb5bc1b28dc7f66c3",
+          "iat": 1543828910,
+          "exp": 1543915310
+        }
+        ```
+
+paths:
+  /user/auth:
+    post:
+      summary: 註冊
+      description: 使用 email 與 密碼 進行註冊
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+                - password
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 電子郵件
+                password:
+                  type: string
+                  description: CryptoJS AES 加密後字串
+            example:
+              email: ausir@finpo.com.tw
+              password: U2FsdGVkX18sHnJb0tLy/0BFlkOa4GlNGlz6J0BAZ1U=
+      responses:
+        200:
+          description: 使用者建立成功
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  _id: 5c06288b2391816c9856edc1
+                  email: ausir@finpo.com.tw
+                  authLog: []
+                  createAt: '2018-12-04T07:11:07.012Z'
+                  __v: 0
+        500:
+          description: 使用者建立失敗
+          content:
+            application/json:
+              example:
+                success: false
+                data:
+                  driver: true
+                  name: MongoError
+                  index: 0
+                  code: 11000
+                  errmsg: 'E11000 duplicate key error collection: smallbangDEV.users index: email_1
+                    dup key: { : "ausir7@finpo.com.tw" }'
+                message: 新增使用者錯誤
+
+    put:
+      summary: 登入
+      description: 使用 email 與 密碼/臨時密碼 登入
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+                - password
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 電子郵件
+                password:
+                  type: string
+                  description: CryptoJS AES 加密後字串
+            example:
+              email: ausir@finpo.com.tw
+              password: U2FsdGVkX18sHnJb0tLy/0BFlkOa4GlNGlz6J0BAZ1U=
+      responses:
+        200:
+          description: 使用者登入成功
+          content:
+            application/json:
+              example:
+                success: true
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiNWMwNzgxN2RlYmIxOTU3M2Q0OTBhNmU0IiwiYXV0aExvZyI6IjVjMDc4MTg2ZWJiMTk1NzNkNDkwYTZlNiIsImlhdCI6MTU0Mzk5NTc4MiwiZXhwIjoxNTQ0MDgyMTgyfQ.l1MfgRujYNWiOOTU-8mYIGkJPvAy10CQpdPQ264nkl0
+        500:
+          description: 使用者登入失敗
+          content:
+            application/json:
+              example:
+                success: false
+                message: 密碼錯誤
+    delete:
+      summary: 登出
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: 使用者登出成功
+          content:
+            application/json:
+              example:
+                success: true
+        500:
+          description: 使用者登出失敗
+          content:
+            application/json:
+              example:
+                success: false
+                message: jwt expired
+    patch:
+      summary: 取得臨時密碼
+      description: 傳入 email ，將產生一組時效性的臨時密碼 (預設 25小時) 至帳號 email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 電子郵件
+            example:
+              email: ausir@finpo.com.tw
+      responses:
+        200:
+          description: 發送臨時密碼成功
+          content:
+            application/json:
+              example:
+                success: true
+        500:
+          description: 使用者登出失敗
+          content:
+            application/json:
+              example:
+                success: false
+                message: 30 分鐘內僅可取得一次臨時密碼
+  /user/auth/reset_password:
+    post:
+      summary: 重設密碼
+      security:
+        - Bearer: []
+      description: 使用 舊密碼 與 新密碼 進行密碼重設 (臨時密碼亦可)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - oldPassword
+                - newPassword
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  description: CryptoJS AES 加密後字串
+                newPassword:
+                  type: string
+                  description: CryptoJS AES 加密後字串
+            example:
+              oldPassword: U2FsdGVkX19iZH6nxxYElPktL1XPqutCSRvO3cCb9YIxTctsc6HBWq0d98LiwGRt
+              newPassword: U2FsdGVkX19jy8iwSP22eIf8qA/9yT+1pM6pMfiWCLA=
+      responses:
+        200:
+          description: 發送臨時密碼成功
+          content:
+            application/json:
+              example:
+                success: true

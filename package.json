@@ -1,0 +1,30 @@
+{
+  "name": "finpo-koa-auth",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon example/server.js",
+    "doc": "npx redoc-cli bundle docs/openapi.yml"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.7",
+    "redoc-cli": "^0.7.0"
+  },
+  "dependencies": {
+    "@koa/cors": "^2.2.2",
+    "await-to-js": "^2.1.1",
+    "bcrypt": "^3.0.2",
+    "consola": "^2.3.0",
+    "crypto-js": "^3.1.9-1",
+    "generate-password": "^1.4.1",
+    "jsonwebtoken": "^8.4.0",
+    "koa": "^2.6.2",
+    "koa-bodyparser": "^4.2.1",
+    "koa-json-error": "^3.1.2",
+    "koa-router": "^7.4.0",
+    "lodash": "^4.17.11",
+    "moment": "^2.22.2",
+    "mongoose": "^5.3.14"
+  }
+}
