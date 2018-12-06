@@ -8,9 +8,10 @@ const moment = require('moment');
 const GeneratePassword = require('generate-password');
 const CryptoJS = require('crypto-js');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const authSchema = require('./schema.js');
+const pug = require('pug');
 
+let mongoose;
 
 const defaultOptions = {
   tokenSecretCert: fs.readFileSync(path.resolve(`${__dirname}/tokensecret.cert`)),
@@ -18,16 +19,27 @@ const defaultOptions = {
   expiresIn: '1d',
   floodProtection: 30,
   tempPasswordExpiredHours: 25,
+  resetPasswordTemplate: path.resolve(`${__dirname}/resetpassword.pug`),
 };
 
 function Auth (opt) {
-  if (_.get(opt, 'model.prototype') instanceof mongoose.Model === false) {
-    throw Error('model property is required and must be mongoose.Model');
+  if (_.isEmpty(opt.mongoose)) {
+    throw Error('property mongoose is required');
   }
-  const modelName = opt.model.modelName;
+  if (_.isEmpty(opt.model)) {
+    throw Error('property model is required');
+  }
+  if (!_.isFunction(opt.sendMail)) {
+    throw Error('property sendMail is required');
+  }
   const options = _.assign(defaultOptions, opt);
+  mongoose = options.mongoose;
+  if (_.get(options, 'model.prototype') instanceof mongoose.Model === false) {
+    throw Error('model property must be mongoose.Model');
+  }
+  const modelName = options.model.modelName;
   const extendSchema = new mongoose.Schema(Object.assign({}, opt.model.schema.obj, authSchema));
-  delete mongoose.connection.models[modelName];
+  mongoose.deleteModel(modelName);
   const User = mongoose.model(modelName, new mongoose.Schema(extendSchema));
 
   this.verifyToken = async (ctx, next) => {
@@ -188,7 +200,11 @@ function Auth (opt) {
     };
     await user.save();
     // 寄信
-    console.log(tempPassword);
+    const html = pug.renderFile(options.resetPasswordTemplate, { tempPassword });
+    options.sendMail({
+      html,
+      to: user.email,
+    });
     ctx.body = { success: true };
   });
 

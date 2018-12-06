@@ -7,11 +7,30 @@ const mongoose = require('mongoose');
 const error = require('koa-json-error');
 const Auth = require('../src/index.js');
 const User = require('./models/user.js');
+const nodemailer = require('nodemailer');
+const mailConfig = require('./configs/mail.js');
+const _ = require('lodash');
+
+const transporter = nodemailer.createTransport({
+  host: mailConfig.smtp.host,
+  port: mailConfig.smtp.port,
+  auth: {
+    user: mailConfig.smtp.auth.user,
+    pass: mailConfig.smtp.auth.pass,
+  },
+});
+
 const userAuth = new Auth({
   model: User,
+  mongoose,
+  sendMail: (mail) => {
+    transporter.sendMail(_.assign(mail,  {
+      from: 'noreply@finpo.com.tw',
+      subject: '密碼重設信',
+    }));
+  },
 });
 global.userAuth = userAuth;
-
 
 const startServer = async () => {
   const listenPort = process.env.PORT || 3000;
