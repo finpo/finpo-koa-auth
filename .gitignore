@@ -2,3 +2,4 @@
 node_modules
 
 /example/configs/*.js
+!/example/configs/*.sample.js
