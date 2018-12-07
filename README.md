@@ -67,3 +67,8 @@ router.use('/user/auth', global.userAuth.router.routes());
   user: _id
 }
 ```
+
+## REST API 文件
+
+https://rebilly.github.io/ReDoc/?url=https://raw.githubusercontent.com/finpo/finpo-koa-auth/master/docs/openapi.yml
+
