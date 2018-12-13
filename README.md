@@ -34,6 +34,7 @@ yarn add @finpo/finpo-koa-auth
   emailAuthTemplate: path.resolve(`${__dirname}/emailauth.pug`), // 信件範本路徑
   emailAuthSubject: '帳號認證信', // 信件標題
   frontendURL: '', // 前端連線網址
+  emailAuth: false, // 是否啟用電子郵件驗證功能
 }
 ```
 
