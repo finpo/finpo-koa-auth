@@ -225,8 +225,6 @@ paths:
     put:
       summary: 使用收到的 token 做驗證
       description: 使用信箱收到的驗證碼做驗證
-      security:
-        - Bearer: []
       requestBody:
         content:
           application/json:
