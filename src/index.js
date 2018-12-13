@@ -77,7 +77,7 @@ function Auth (opt) {
       ctx.throw({ message: '密碼需使用 CryptoJS AES 加密傳送' });
     }
     body.passwordHash = await bcrypt.hash(password, 10);
-    const [err, user] = await to(User.create(_.pick(body, _.merge(options.signupFields, [
+    const [err, user] = await to(User.create(_.pick(body, _.concat(options.signupFields, [
       'email',
       'passwordHash',
     ]))));
