@@ -57,7 +57,7 @@ function Auth (opt) {
     const [err, user] = await to(User.findOne({
       _id: verify.user,
       'authLog._id': verify.authLog, 
-    }, { 'authLog.$': 1 }));
+    }, { 'authLog.$': 1, emailAuth: 1 }));
     if (options.emailAuth && user.emailAuth !== true) {
       ctx.throw({ message: 'email not auth yet' });
     }
