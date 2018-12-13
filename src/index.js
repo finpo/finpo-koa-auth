@@ -20,6 +20,7 @@ const defaultOptions = {
   floodProtection: 30,
   tempPasswordExpiredHours: 25,
   resetPasswordTemplate: path.resolve(`${__dirname}/resetpassword.pug`),
+  signupFields: [],
 };
 
 function Auth (opt) {
@@ -76,10 +77,10 @@ function Auth (opt) {
       ctx.throw({ message: '密碼需使用 CryptoJS AES 加密傳送' });
     }
     body.passwordHash = await bcrypt.hash(password, 10);
-    const [err, user] = await to(User.create(_.pick(body, [
+    const [err, user] = await to(User.create(_.pick(body, _.merge(options.signupFields, [
       'email',
       'passwordHash',
-    ])));
+    ]))));
     if (err) {
       ctx.throw({
         data: err,

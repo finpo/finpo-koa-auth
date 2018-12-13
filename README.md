@@ -28,6 +28,7 @@ yarn add @finpo/finpo-koa-auth
   expiresIn: '1d', // token 有效時間
   floodProtection: 30, // 忘記密碼間隔時間
   tempPasswordExpiredHours: 25, // 臨時密碼有效期
+  signupFields: ['name'], // 註冊欄位
 }
 ```
 
@@ -45,6 +46,7 @@ const userAuth = new Auth({
     // mail only html and to props
     // nodemailer.send(mail);
   },
+  signupField: ['name', 'phone'],
 });
 global.userAuth = userAuth;
 ```
