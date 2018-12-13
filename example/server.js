@@ -24,11 +24,12 @@ const userAuth = new Auth({
   model: User,
   mongoose,
   sendMail: (mail) => {
-    transporter.sendMail(_.assign(mail,  {
+    transporter.sendMail(_.merge(mail,  {
       from: 'noreply@finpo.com.tw',
-      subject: '密碼重設信',
-    }));
+    })).then((a)=> { console.log(a);}, (b) => { console.log(b);});
   },
+  emailAuth: true,
+  frontendURL: 'http://127.0.0.1/auth/emailtoken/',
 });
 global.userAuth = userAuth;
 

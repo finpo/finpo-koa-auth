@@ -14,13 +14,18 @@ const pug = require('pug');
 let mongoose;
 
 const defaultOptions = {
-  tokenSecretCert: fs.readFileSync(path.resolve(`${__dirname}/tokensecret.cert`)),
+  tokenSecretCert: fs.readFileSync(path.resolve(`${__dirname}/tokensecret.cert`)).toString(),
   AESsecret: '9&B73S$cGDGewBrPZDJN',
   expiresIn: '1d',
   floodProtection: 30,
   tempPasswordExpiredHours: 25,
   resetPasswordTemplate: path.resolve(`${__dirname}/resetpassword.pug`),
+  resetPasswordSubject: '密碼重設信',
+  emailAuthTemplate: path.resolve(`${__dirname}/emailauth.pug`),
+  emailAuthSubject: '帳號認證信',
   signupFields: [],
+  emailAuth: false,
+  frontendURL: '',
 };
 
 function Auth (opt) {
@@ -53,6 +58,9 @@ function Auth (opt) {
       _id: verify.user,
       'authLog._id': verify.authLog, 
     }, { 'authLog.$': 1 }));
+    if (options.emailAuth && user.emailAuth !== true) {
+      ctx.throw({ message: 'email not auth yet' });
+    }
     if (_.chain(user).result('authLog[0].signout').isEmpty().value()) {
       ctx.auth = verify;
     } else {
@@ -69,8 +77,8 @@ function Auth (opt) {
   };
   const router = new Router();
 
+  // 註冊
   router.post('/', async ctx => {
-    // 註冊
     const body = ctx.request.body;
     const password = decryptPassword(body.password);
     if (!password) {
@@ -94,6 +102,65 @@ function Auth (opt) {
     };
   });
 
+  // 索取電子郵件驗證
+  router.post('/email', async (ctx) => {
+    if (options.emailAuth !== true) {
+      ctx.throw({ message: '沒有開啟郵件認證功能' });
+    }
+    const token = _.chain(ctx).result('request.header.authorization').split(' ').get(1).value();
+    if (!token) {
+      ctx.throw({ message: 'token require' });
+    }
+    const verify = jwt.verify(token, options.tokenSecretCert);
+    if (!verify) {
+      ctx.throw({ message: 'token 編碼錯誤' });
+    }
+    const [err, user] = await to(User.findOne({
+      _id: verify.user,
+      'authLog._id': verify.authLog, 
+    }, { 'authLog.$': 1, 'email': 1, 'emailAuth': 1 }));
+    console.log(user.emailAuth);
+    if (user.emailAuth === true) {
+      ctx.throw({ message: 'email 已經驗證過' });
+    }
+    user.emailAuth = GeneratePassword.generate({
+      length: 40,
+      numbers: true,
+    });
+    const authToken = jwt.sign({
+      authToken: user.emailAuth,
+      user: user._id,
+    }, options.tokenSecretCert, { expiresIn: options.expiresIn });
+    user.save();
+    const html = pug.renderFile(options.emailAuthTemplate, { authToken, frontendURL: options.frontendURL });
+    options.sendMail({
+      html,
+      to: user.email,
+      subject: options.emailAuthSubject,
+    });
+    ctx.body = { success: true };
+  });
+
+  // 使用驗證碼驗證電子郵件
+  router.put('/email', async (ctx) => {
+    const token = ctx.request.body.token;
+    if (!token) {
+      ctx.throw({ message: 'token require' });
+    }
+    const verify = jwt.verify(token, options.tokenSecretCert);
+    const [err, user] = await to(User.findOne({ _id: verify.user }));
+    if (user.emailAuth === true) {
+      ctx.throw({ message: '電子郵件已驗證' });
+    }
+    if (user.emailAuth !== verify.authToken) {
+      ctx.throw({ message: '驗證碼錯誤' });
+    }
+    user.emailAuth = true;
+    user.save();
+    ctx.body = { success: true, message: '電子郵件驗證完成' };
+  });
+
+  // 重設密碼
   router.post('/reset_password', this.verifyToken, async ctx => {
     const [err, user] = await to(User.findById(ctx.auth.user, '+passwordHash +tempPassword'));
     if (err) {
@@ -120,8 +187,8 @@ function Auth (opt) {
     ctx.body = { success: true };
   });
   
+  // 使用者登入
   router.put('/', async ctx => {
-    // 登入
     const body = ctx.request.body;
     const password = decryptPassword(body.password);
     if (!password) {
@@ -167,8 +234,8 @@ function Auth (opt) {
   
   });
   
+  // 使用者登出
   router.delete('/', this.verifyToken, async ctx => {
-    // 登出
     const verify = ctx.auth;
     const [err, user] = await to(User.findOneAndUpdate({
       _id: verify.user,
@@ -180,10 +247,9 @@ function Auth (opt) {
     };
   });
   
+  // 取得臨時密碼
   router.patch('/', async ctx => {
-    const floodProtection = options.floodProtection;
-    // 取得臨時密碼
-    const [err, user] = await to(User.findOne({ email: ctx.request.body.email }, '+tempPassword'));
+    const floodProtection = options.floodProtection;    const [err, user] = await to(User.findOne({ email: ctx.request.body.email }, '+tempPassword'));
     if (!user) {
       ctx.throw({ message: '找不到使用者電子郵件' });
     }
@@ -205,6 +271,7 @@ function Auth (opt) {
     options.sendMail({
       html,
       to: user.email,
+      subject: options.resetPasswordSubject,
     });
     ctx.body = { success: true };
   });

@@ -16,9 +16,9 @@ yarn add @finpo/finpo-koa-auth
 ```js
 // required
 {
-  mongoose: mongoose, // mongoose framework
-  model: model, // mongoose model
-  sendMail: sendmail, // send mail function
+  mongoose, // mongoose framework
+  model, // mongoose model
+  sendMail, // send mail function
 }
 
 // optional
@@ -29,6 +29,11 @@ yarn add @finpo/finpo-koa-auth
   floodProtection: 30, // 忘記密碼間隔時間
   tempPasswordExpiredHours: 25, // 臨時密碼有效期
   signupFields: ['name'], // 註冊欄位
+  resetPasswordTemplate: path.resolve(`${__dirname}/resetpassword.pug`), // 信件範本路徑
+  resetPasswordSubject: '密碼重設信', // 信件標題
+  emailAuthTemplate: path.resolve(`${__dirname}/emailauth.pug`), // 信件範本路徑
+  emailAuthSubject: '帳號認證信', // 信件標題
+  frontendURL: '', // 前端連線網址
 }
 ```
 
@@ -46,7 +51,7 @@ const userAuth = new Auth({
     // mail only html and to props
     // nodemailer.send(mail);
   },
-  signupField: ['name', 'phone'],
+  signupFields: ['name', 'phone'],
 });
 global.userAuth = userAuth;
 ```

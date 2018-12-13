@@ -209,3 +209,41 @@ paths:
             application/json:
               example:
                 success: true
+  /user/auth/email:
+    post:
+      summary: 取得驗證信箱token
+      description: 驗證碼將會以超連結方式寄送到註冊信箱
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: 驗證碼已發送
+          content:
+            application/json:
+              example:
+                success: true
+    put:
+      summary: 使用收到的 token 做驗證
+      description: 使用信箱收到的驗證碼做驗證
+      security:
+        - Bearer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - token
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: 電子郵件中獲取到的驗證碼
+            example:
+              token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRoVG9rZW4iOiJzZGhUYnlIYjUyVDI3aDlzUURSVzYxWjFaUjVvNElPR1EyWXpjcGZ1IiwidXNlciI6IjVjMTFmZTRhZWE2YTNlMzUyMDA3ZDQ0OCIsImlhdCI6MTU0NDY4NjY4NCwiZXhwIjoxNTQ0NzczMDg0fQ.yls0rmOI6lRSPEfxfDQGr_5pqiPR27Ad-xQ0go7Leg4
+      responses:
+        200:
+          description: 信箱驗證成功
+          content:
+            application/json:
+              example:
+                success: true

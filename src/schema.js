@@ -34,6 +34,9 @@ const Schema = {
     type: [AuthSchema],
     select: false,
   },
+  emailAuth: {
+    type: mongoose.SchemaTypes.Mixed,
+  },
   createAt: {
     type: Date,
     default: Date.now,
