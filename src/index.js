@@ -205,7 +205,7 @@ function Auth (opt) {
     if (!result && _.isEmpty(user.tempPassword)) {
       ctx.throw({ message: '密碼錯誤' });
     }
-    if (!_.isEmpty(user.tempPassword)) {
+    if (!result && !_.isEmpty(user.tempPassword)) {
       if (moment().isAfter(moment(user.tempPassword.expired))) {
         ctx.throw({ message: '臨時密碼過期' });
       }
