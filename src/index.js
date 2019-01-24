@@ -69,6 +69,19 @@ function Auth (opt) {
     await next();
   };
 
+  this.verifyJWT = async (token) => {
+    const verify = jwt.verify(token, options.tokenSecretCert);
+    const [err, user] = await to(User.findOne({
+      _id: verify.user,
+      'authLog._id': verify.authLog, 
+    }, { 'authLog.$': 1, emailAuth: 1 }));
+    if (_.chain(user).result('authLog[0].signout').isEmpty().value()) {
+      return verify;
+    } else {
+      throw { message: 'token signout' };
+    }
+  };
+
   const decryptPassword = (password) => {
     return CryptoJS.AES.decrypt(password, options.AESsecret).toString(CryptoJS.enc.Utf8);
   };
