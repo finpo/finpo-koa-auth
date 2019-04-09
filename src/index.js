@@ -13,22 +13,23 @@ const pug = require('pug');
 
 let mongoose;
 
-const defaultOptions = {
-  tokenSecretCert: fs.readFileSync(path.resolve(`${__dirname}/tokensecret.cert`)).toString(),
-  AESsecret: '9&B73S$cGDGewBrPZDJN',
-  expiresIn: '1d',
-  floodProtection: 30,
-  tempPasswordExpiredHours: 25,
-  resetPasswordTemplate: path.resolve(`${__dirname}/resetpassword.pug`),
-  resetPasswordSubject: '密碼重設信',
-  emailAuthTemplate: path.resolve(`${__dirname}/emailauth.pug`),
-  emailAuthSubject: '帳號認證信',
-  signupFields: [],
-  emailAuth: false,
-  frontendURL: '',
-};
 
 function Auth (opt) {
+  const defaultOptions = {
+    tokenSecretCert: fs.readFileSync(path.resolve(`${__dirname}/tokensecret.cert`)).toString(),
+    AESsecret: '9&B73S$cGDGewBrPZDJN',
+    expiresIn: '1d',
+    floodProtection: 30,
+    tempPasswordExpiredHours: 25,
+    resetPasswordTemplate: path.resolve(`${__dirname}/resetpassword.pug`),
+    resetPasswordSubject: '密碼重設信',
+    emailAuthTemplate: path.resolve(`${__dirname}/emailauth.pug`),
+    emailAuthSubject: '帳號認證信',
+    signupFields: [],
+    emailAuth: false,
+    frontendURL: '',
+  };
+  
   if (_.isEmpty(opt.mongoose)) {
     throw Error('property mongoose is required');
   }
