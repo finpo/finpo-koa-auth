@@ -8,7 +8,7 @@
     "doc": "npx redoc-cli bundle docs/openapi.yml"
   },
   "devDependencies": {
-    "nodemailer": "^6.4.2",
+    "nodemailer": "^6.4.16",
     "nodemon": "^2.0.2",
     "redoc-cli": "^0.9.5"
   },
